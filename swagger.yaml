@@ -1,0 +1,525 @@
+openapi: 3.0.3
+info:
+  title: Microblog API
+  version: 1.1.0
+  description: >
+    API documentation for Microblog backend (Spring Boot).
+    Firebase handles authentication. Backend handles user, post, follow, feed, and like operations.
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+tags:
+  - name: Auth
+  - name: Users
+  - name: Posts
+  - name: Follows
+  - name: Feed
+  - name: Likes
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      description: Receives Firebase UID and username to create a user in backend DB.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [uid, username]
+              properties:
+                uid:
+                  type: string
+                  description: Firebase user ID
+                username:
+                  type: string
+      responses:
+        "201":
+          description: User registered successfully
+        "400":
+          description: Invalid UID or username
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Username already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Verify user login
+      description: Firebase login returns JWT. Backend verifies JWT and returns session info.
+      security:
+        - firebaseAuth: []
+      responses:
+        "200":
+          description: Login success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionToken:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/UserInfo"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Clear session cookie
+      security:
+        - firebaseAuth: []
+      responses:
+        "200":
+          description: Logout success
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Trigger Firebase password reset
+      description: Sends password reset email to user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+      responses:
+        "200":
+          description: Email sent
+
+  /users/info/{username}:
+    get:
+      tags: [Users]
+      summary: Get user info by username
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User info retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /users/search/{username}:
+    get:
+      tags: [Users]
+      summary: Search users by username (partial match)
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of matching users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /users/{uid}/likes:
+    get:
+      tags: [Likes]
+      summary: Get posts liked by a user
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of posts liked by the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
+  /follows/{uid}:
+    post:
+      tags: [Follows]
+      summary: Follow a user
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Followed successfully
+
+    delete:
+      tags: [Follows]
+      summary: Unfollow a user
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unfollowed successfully
+
+  /follows/followers/{uid}:
+    get:
+      tags: [Follows]
+      summary: Get followers of a user
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of followers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /follows/following/{uid}:
+    get:
+      tags: [Follows]
+      summary: Get users followed by the given user
+      parameters:
+        - in: path
+          name: uid
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of following users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+
+  /posts/{username}:
+    get:
+      tags: [Posts]
+      summary: Get all posts by a user
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of posts by the user
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
+  /posts:
+    post:
+      tags: [Posts]
+      summary: Create a post
+      security:
+        - firebaseAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+                  maxLength: 280
+      responses:
+        "201":
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /posts/{postId}:
+    delete:
+      tags: [Posts]
+      summary: Delete a post
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post deleted
+        "403":
+          description: Unauthorized delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /posts/like/{postId}:
+    post:
+      tags: [Likes]
+      summary: Like a post
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post liked
+
+    delete:
+      tags: [Likes]
+      summary: Unlike a post
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Post unliked
+
+    get:
+      tags: [Likes]
+      summary: Get users who liked a post
+      parameters:
+        - in: path
+          name: postId
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Array of users who liked the post
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "404":
+          description: Post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /feed/public:
+    get:
+      tags: [Feed]
+      summary: Get public feed posts
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: size
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Paginated public posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
+  /feed/public/stream:
+    get:
+      tags: [Feed]
+      summary: Stream new public posts (SSE)
+      description: Establish a server-sent events connection for new posts.
+      responses:
+        "200":
+          description: Stream of new posts (SSE)
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+  /feed/following:
+    get:
+      tags: [Feed]
+      summary: Get feed from followed users
+      security:
+        - firebaseAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: size
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of posts from followed users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
+  /feed/following/stream:
+    get:
+      tags: [Feed]
+      summary: Stream new posts from followed users (SSE)
+      description: Establish a server-sent events connection for new posts.
+      responses:
+        "200":
+          description: Stream of new posts (SSE)
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/Post"
+
+components:
+  securitySchemes:
+    firebaseAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Firebase JWT token verified by backend
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+
+    UserInfo:
+      type: object
+      properties:
+        displayName:
+          type: string
+          example: "John Doe"
+        username:
+          type: string
+          example: "john12doe"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2025-10-08T07:45:00Z"
+        isFollowed:
+          type: boolean
+          description: Indicates if the current user follows this user. Optional when viewing own profile.
+          example: true
+      required:
+        - displayName
+        - username
+        - createdAt
+
+    User:
+      type: object
+      properties:
+        uid:
+          type: string
+        username:
+          type: string
+        isFollowing:
+          type: boolean
+          description: Indicates if the current user follows this user. Optional when viewing self.
+      required:
+        - uid
+        - username
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        authorId:
+          type: string
+        authorUsername:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        isLiked:
+          type: boolean
+        likeCount:
+          type: integer
+      required:
+        - id
+        - authorId
+        - authorUsername
+        - content
+        - createdAt
+
+security:
+  - firebaseAuth: []
+
