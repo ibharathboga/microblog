@@ -1,96 +1,42 @@
 # Microblog
 
-Microblog is a full-stack social networking app inspired by **X (Twitter)**, featuring real-time updates using **Server-Sent Events (SSE)** and authentication via **Firebase**.  
-The project demonstrates modern full-stack development practices using **React**, **Spring Boot**, and **PostgreSQL**.
+Microblog is a capstone project inspired by core microblogging features similar to platforms like X (twitter). It is built to demonstrate proficiency in Spring Boot backend and React frontend development, with a focus on event-driven design using Server-Sent Events (SSE) for real-time notifications and feed updates. Firebase is integrated solely for authentication.
 
----
+## Project Overview
 
-## 🧠 Overview
+Microblog enables users to create/delete posts, like/unlike posts, follow/unfollow other users, and view personalized or public feeds with live updates. The project tackles common challenges such as query efficiency by reducing the N+1 problem through batch queries and implements contextual UI elements like follow/unfollow buttons relative to the current user and showing contextual like status for posts relative to the current user.
 
-The goal of this project is to build a microblogging application where users can:
-- Register and authenticate using Firebase
-- Create, delete, like, and follow other users
-- Receive real-time notifications and feed updates using SSE
-- Search users and explore public or following feeds with pagination
+## Key Features
 
----
+- Create and delete posts
+- Like and unlike posts with user-relative status
+- Follow and unfollow users with contextual button states
+- Public and following feeds with live real-time updates using SSE
+- Real-time notification system with mark all as read functionality
+- Search users and view liked posts
+- Backend performance optimized by reducing N+1 query problem using batch queries
+- SSE client implemented with fetch-event-source library for fault-tolerant persistent connections
 
-## ⚙️ Tech Stack
+## Technologies Used
 
-| Layer | Technology |
-|-------|-------------|
-| Frontend | React (TypeScript), Tailwind CSS |
-| Backend | Spring Boot |
-| Database | PostgreSQL |
-| Authentication | Firebase Authentication |
-| Real-Time Communication | Server-Sent Events (SSE) |
+- Backend: Spring Boot with REST APIs, PostgreSQL as the database
+- Frontend: React with shadcn UI components styled using Tailwind CSS
+- Authentication: Firebase Authentication for user login and token verification
+- Real-time Updates: Server-Sent Events (SSE) for feed and notification streaming
+- Query Optimization: Batch fetching to improve database call efficiency   
 
----
+## Technical Highlights
 
-## 🚀 Features
+- Event-driven architecture demonstrated through SSE implementation connecting backend events with frontend reactive updates.
+- Query optimization reducing the N+1 select problem to minimal batch queries, improving performance.
+- Contextual reactive UI states (like follow/unfollow) calculated based on the current user’s relationship data dynamically.
+- Usage of the fetch-event-source library for SSE.
 
-- User Registration and Login via Firebase  
-- Create and Delete Posts  
-- Like / Unlike Functionality  
-- Follow / Unfollow Users  
-- Search Users and Posts  
-- Feed: Public / Following with Pagination  
-- Real-time Notification System  
-- Real-time Feed Update on New Posts  
+## Learning Outcomes
+This project serves to consolidate knowledge in:
 
----
-
-## 🔄 Real-Time Updates (SSE)
-
-**Server-Sent Events (SSE)** are used for pushing real-time updates from the server to the client over a single HTTP connection.  
-SSE is simple to implement and ideal for use cases where only the server sends updates — such as live feeds, notifications, and post updates.
-
-**Why SSE?**
-- Lightweight compared to WebSockets  
-- Native browser support using `EventSource` API  
-- Simple reconnection handling  
-
-Frontend uses the `fetch-event-source` library for stable event streaming.
-
----
-
-## 🧩 Key Learnings & Challenges
-
-- Modern React practices using Hooks and Context API  
-- Database relations and setup using JPA and PostgreSQL  
-- Solving **N + 1 problem** and applying batch queries  
-- Implementing **composite keys** using `@Embeddable`  
-- Structuring code using **Hexagonal Architecture (Ports & Adapters)**  
-- Implementing a **Notification System** backed by domain events  
-- Using **DTOs and Mapper Services** for clean data transfer  
-- Git-based version control and branching workflows  
-- Understanding **Pub/Sub pattern** and **intra-application event handling**
-
----
-
-## 🧠 Spring Boot Highlights
-
-- Clean service and DTO layers with interface-driven design  
-- Real-time communication via SSE endpoints  
-- Intra-application events using Spring’s `ApplicationEventPublisher`  
-- Secure endpoints with Firebase token verification middleware  
-
----
-
-## 🔮 Future Scope
-
-- Implement batching and scheduling strategies for push updates  
-- Introduce message brokers like Kafka or RabbitMQ for high write volume  
-- Expand SSE usage for reflecting more events (likes, follows, deletes)  
-- Add **Comments** feature  
-- Use **Aspect-Oriented Programming (AOP)** for cross-cutting concerns  
-
----
-
-## 🧑‍💻 Author
-
-**Bharath Chandra**  
-Full Stack Developer — React | Spring Boot | PostgreSQL  
-Building real-time, event-driven applications and exploring modern backend architectures.
-
----
+- Spring Boot REST API design with event publishing.
+- React patterns integrating with real-time SSE data streams. 
+- Effective use of Firebase Authentication integrated in full-stack systems.
+- Database performance tuning to avoid common pitfalls like N+1 query issues.
+- Implementing core microblogging functionalities inspired by Twitter’s feature set.
